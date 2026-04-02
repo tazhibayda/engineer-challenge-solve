@@ -22,14 +22,14 @@ type Session struct {
 	CreatedAt time.Time
 }
 
-func NewSession(userID, familyID uuid.UUID, clientIP, userAgent string, duriation time.Duration) *Session {
+func NewSession(userID uuid.UUID, clientIP, userAgent string, duriation time.Duration) *Session {
 	now := time.Now().UTC()
 	sessionId := uuid.New()
 
 	return &Session{
 		ID:        sessionId,
 		UserID:    userID,
-		FamilyID:  familyID,
+		FamilyID:  sessionId, // familyID first session is same as sessionID, next session will have same familyID
 		ClientIP:  clientIP,
 		UserAgent: userAgent,
 		IsRevoked: false,
