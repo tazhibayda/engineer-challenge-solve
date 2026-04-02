@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=user_repository.go -destination=mock/user_repository_mock.go -package=mock
 type Repository interface {
 	Create(ctx context.Context, u *User) error
 	Update(ctx context.Context, u *User) error
