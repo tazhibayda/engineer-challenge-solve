@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"github.com/tazhibayda/OrbittoAuth/internal/application/port"
+	"time"
 
 	"github.com/tazhibayda/OrbittoAuth/internal/application/command"
 	authv1 "github.com/tazhibayda/OrbittoAuth/pkg/api/auth/v1"
@@ -15,12 +17,14 @@ type AuthServer struct {
 	authv1.UnimplementedAuthServiceServer
 	registerHandler *command.RegisterUserHandler
 	loginHandler    *command.LoginHandler
+	jwtManager      port.JWTManager
 }
 
-func NewAuthServer(rh *command.RegisterUserHandler, lh *command.LoginHandler) *AuthServer {
+func NewAuthServer(rh *command.RegisterUserHandler, lh *command.LoginHandler, jwtManager port.JWTManager) *AuthServer {
 	return &AuthServer{
 		registerHandler: rh,
 		loginHandler:    lh,
+		jwtManager:      jwtManager,
 	}
 }
 
@@ -60,8 +64,14 @@ func (s *AuthServer) Login(ctx context.Context, req *authv1.LoginRequest) (*auth
 		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
 	}
 
+	claims := port.AuthClaims{UserID: result.UserID}
+	accessToken, err := s.jwtManager.Generate(claims, 15*time.Minute)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate access token")
+	}
+
 	return &authv1.LoginResponse{
-		AccessToken: "jwt-token-placeholder",
+		AccessToken: accessToken,
 		SessionId:   result.SessionID,
 		UserId:      result.UserID,
 	}, nil
