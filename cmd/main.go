@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
+	"github.com/tazhibayda/OrbittoAuth/internal/infrastructure/db/postgres"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
@@ -14,13 +18,10 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/tazhibayda/OrbittoAuth/internal/application/command"
+	redisAdapter "github.com/tazhibayda/OrbittoAuth/internal/infrastructure/db/redis"
 	"github.com/tazhibayda/OrbittoAuth/internal/infrastructure/security"
 	transportGrpc "github.com/tazhibayda/OrbittoAuth/internal/infrastructure/transport/grpc"
 	authv1 "github.com/tazhibayda/OrbittoAuth/pkg/api/auth/v1"
-
-	authMock "github.com/tazhibayda/OrbittoAuth/internal/domain/auth/mock"
-	userMock "github.com/tazhibayda/OrbittoAuth/internal/domain/user/mock"
-	"go.uber.org/mock/gomock"
 )
 
 func main() {
@@ -29,28 +30,47 @@ func main() {
 	sugar := logger.Sugar()
 	sugar.Info("Starting Auth Service...")
 
+	ctx := context.Background()
+	// TODO: Вынести конфигурацию в отдельный файл .env или использовать флаги командной строки
+	dbURL := "postgres://postgres:1234@192.168.32.123:5432/auth_db?sslmode=disable" // пока что для локальной разработки - wsl бд
+	dbPool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		sugar.Fatalf("Unable to connect to database: %v", err)
+	}
+	defer dbPool.Close()
+	if err := dbPool.Ping(ctx); err != nil {
+		sugar.Fatalf("Database ping failed: %v", err)
+	}
+	sugar.Info("Connected to PostgreSQL")
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "192.168.32.123:6379", // пока что для локальной разработки - wsl redis
+		Password: "1234",
+	})
+	defer redisClient.Close()
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		sugar.Fatalf("Redis ping failed: %v", err)
+	}
+	sugar.Info("Connected to Redis")
+
 	jwtManager, err := security.NewRSAJWTManager()
 	if err != nil {
 		sugar.Fatalf("Failed to initialize JWT manager: %v", err)
 	}
 
-	// TODO: Здесь будет подключение к PostgreSQL и Redis.
-	ctrl := gomock.NewController(nil)
-	userRepo := userMock.NewMockRepository(ctrl)
-	sessionRepo := authMock.NewMockSessionRepository(ctrl)
+	userRepo := postgres.NewUserRepository(dbPool)
+	sessionRepo := redisAdapter.NewSessionRepository(redisClient)
 
 	registerHandler := command.NewRegisterUserHandler(userRepo)
 	loginHandler := command.NewLoginHandler(userRepo, sessionRepo)
 
 	authInterceptor := transportGrpc.NewAuthInterceptor(jwtManager)
-
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor.Unary()),
 	)
 
 	authServer := transportGrpc.NewAuthServer(registerHandler, loginHandler, jwtManager)
 	authv1.RegisterAuthServiceServer(grpcServer, authServer)
-
 	reflection.Register(grpcServer)
 
 	go func() {
@@ -86,5 +106,6 @@ func main() {
 
 	sugar.Info("Shutting down servers...")
 	grpcServer.GracefulStop()
+	time.Sleep(1 * time.Second)
 	sugar.Info("Servers stopped gracefully")
 }
