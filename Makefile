@@ -2,7 +2,6 @@ APP_NAME := OrbittoAuth
 PROTO_DIR := api/proto
 GEN_DIR := pkg/api
 
-.PHONY: install-tools generate-api
 
 generate:
 	@echo "Generating mocks..."
@@ -11,6 +10,40 @@ generate:
 test: generate
 	@echo "Running tests..."
 	@go test -v -race ./...
+
+
+DB_URL := postgres://postgres:1234@192.168.32.123:5432/auth_db?sslmode=disable
+
+install-migrate:
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+migrate-up:
+	@echo "Running up migrations..."
+	migrate -path migrations -database "$(DB_URL)" -verbose up
+
+migrate-down:
+	@echo "Running down migrations..."
+	migrate -path migrations -database "$(DB_URL)" -verbose down 1
+
+
+# Запуск только быстрых unit-тестов
+test-unit:
+	@echo "Running unit tests..."
+	@go test -short -v ./...
+
+# Запуск всех тестов, включая интеграционные (требует поднятых БД)
+test-full:
+	@echo "Running all tests (Unit + Integration)..."
+	@go test -v ./...
+
+# Хелпер для проверки покрытия
+test-cover:
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out
+
+
+
+.PHONY: install-tools generate-api
 
 
 init-proto-deps:
