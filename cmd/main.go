@@ -32,7 +32,10 @@ func main() {
 
 	ctx := context.Background()
 	// TODO: Вынести конфигурацию в отдельный файл .env или использовать флаги командной строки
-	dbURL := "postgres://postgres:1234@192.168.32.123:5432/auth_db?sslmode=disable" // пока что для локальной разработки - wsl бд
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = "postgres://postgres:1234@192.168.32.123:5432/auth_db?sslmode=disable"
+	}
 	dbPool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		sugar.Fatalf("Unable to connect to database: %v", err)
@@ -42,6 +45,11 @@ func main() {
 		sugar.Fatalf("Database ping failed: %v", err)
 	}
 	sugar.Info("Connected to PostgreSQL")
+
+	redisAddr := os.Getenv("REDIS_URL")
+	if redisAddr == "" {
+		redisAddr = "192.168.32.123:6379"
+	}
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     "192.168.32.123:6379", // пока что для локальной разработки - wsl redis

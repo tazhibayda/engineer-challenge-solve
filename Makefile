@@ -26,6 +26,23 @@ migrate-down:
 	migrate -path migrations -database "$(DB_URL)" -verbose down 1
 
 
+# Запуск только быстрых unit-тестов
+test-unit:
+	@echo "Running unit tests..."
+	@go test -short -v ./...
+
+# Запуск всех тестов, включая интеграционные (требует поднятых БД)
+test-full:
+	@echo "Running all tests (Unit + Integration)..."
+	@go test -v ./...
+
+# Хелпер для проверки покрытия
+test-cover:
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out
+
+
+
 .PHONY: install-tools generate-api
 
 
