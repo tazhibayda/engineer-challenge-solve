@@ -29,6 +29,37 @@ service AuthService {
       body: "*"
     };
   }
+  
+  rpc RequestPasswordReset(RequestPasswordResetRequest) returns (RequestPasswordResetResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/password-reset/request"
+      body: "*"
+    };
+  }
+
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/password-reset/confirm"
+      body: "*"
+    };
+  }
+}
+
+
+
+message RequestPasswordResetRequest {
+  string email = 1;
+}
+message RequestPasswordResetResponse {
+  string message = 1;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
+message ResetPasswordResponse {
+  string message = 1;
 }
 
 message RegisterRequest {

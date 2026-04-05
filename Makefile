@@ -42,10 +42,6 @@ test-cover:
 	@go tool cover -html=coverage.out
 
 
-
-.PHONY: install-tools generate-api
-
-
 init-proto-deps:
 	@echo "Downloading proto dependencies..."
 	@rm -rf vendor.protogen

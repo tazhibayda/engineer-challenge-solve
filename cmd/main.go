@@ -71,13 +71,17 @@ func main() {
 
 	registerHandler := command.NewRegisterUserHandler(userRepo)
 	loginHandler := command.NewLoginHandler(userRepo, sessionRepo)
+	resetRepo := redisAdapter.NewResetRepository(redisClient)
+
+	requestResetHandler := command.NewRequestPasswordResetHandler(userRepo, resetRepo, sugar)
+	resetPasswordHandler := command.NewResetPasswordHandler(userRepo, resetRepo, sessionRepo)
 
 	authInterceptor := transportGrpc.NewAuthInterceptor(jwtManager)
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor.Unary()),
 	)
 
-	authServer := transportGrpc.NewAuthServer(registerHandler, loginHandler, jwtManager)
+	authServer := transportGrpc.NewAuthServer(registerHandler, loginHandler, requestResetHandler, resetPasswordHandler, jwtManager)
 	authv1.RegisterAuthServiceServer(grpcServer, authServer)
 	reflection.Register(grpcServer)
 
