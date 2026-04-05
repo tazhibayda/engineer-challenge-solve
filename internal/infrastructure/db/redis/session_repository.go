@@ -21,6 +21,8 @@ type SessionRepository struct {
 	client *redis.Client
 }
 
+const userSessionsPrefix = "user_sessions:"
+
 func NewSessionRepository(client *redis.Client) *SessionRepository {
 	return &SessionRepository{client: client}
 }
@@ -33,14 +35,17 @@ func (r *SessionRepository) Create(ctx context.Context, s *auth.Session) error {
 
 	sessionKey := sessionPrefix + s.ID.String()
 	familyKey := familyPrefix + s.FamilyID.String()
+	userSessionsKey := userSessionsPrefix + s.UserID.String()
 
 	pipe := r.client.Pipeline()
-
 	ttl := time.Until(s.ExpiresAt)
-	pipe.Set(ctx, sessionKey, data, ttl)
 
+	pipe.Set(ctx, sessionKey, data, ttl)
 	pipe.SAdd(ctx, familyKey, s.ID.String())
 	pipe.Expire(ctx, familyKey, ttl)
+
+	pipe.SAdd(ctx, userSessionsKey, s.ID.String())
+	pipe.Expire(ctx, userSessionsKey, ttl)
 
 	_, err = pipe.Exec(ctx)
 	return err
@@ -123,4 +128,25 @@ func (r *SessionRepository) MarkRotated(ctx context.Context, id uuid.UUID) error
 	ttl := time.Until(s.ExpiresAt)
 
 	return r.client.Set(ctx, sessionPrefix+id.String(), data, ttl).Err()
+}
+
+func (r *SessionRepository) RevokeAllForUser(ctx context.Context, userID uuid.UUID) error {
+	userSessionsKey := userSessionsPrefix + userID.String()
+
+	sessionIDs, err := r.client.SMembers(ctx, userSessionsKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if len(sessionIDs) == 0 {
+		return nil
+	}
+
+	keysToDelete := make([]string, 0, len(sessionIDs)+1)
+	for _, id := range sessionIDs {
+		keysToDelete = append(keysToDelete, sessionPrefix+id)
+	}
+	keysToDelete = append(keysToDelete, userSessionsKey)
+
+	return r.client.Del(ctx, keysToDelete...).Err()
 }

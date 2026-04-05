@@ -12,4 +12,5 @@ type SessionRepository interface {
 	RevokeRefresh(ctx context.Context, id uuid.UUID) error
 	RevokeFamily(ctx context.Context, familyID uuid.UUID) error
 	MarkRotated(ctx context.Context, id uuid.UUID) error
+	RevokeAllForUser(ctx context.Context, userID uuid.UUID) error
 }

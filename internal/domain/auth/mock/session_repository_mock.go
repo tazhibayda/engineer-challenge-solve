@@ -70,6 +70,20 @@ func (mr *MockSessionRepositoryMockRecorder) MarkRotated(ctx, id any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkRotated", reflect.TypeOf((*MockSessionRepository)(nil).MarkRotated), ctx, id)
 }
 
+// RevokeAllForUser mocks base method.
+func (m *MockSessionRepository) RevokeAllForUser(ctx context.Context, userID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeAllForUser", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeAllForUser indicates an expected call of RevokeAllForUser.
+func (mr *MockSessionRepositoryMockRecorder) RevokeAllForUser(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeAllForUser", reflect.TypeOf((*MockSessionRepository)(nil).RevokeAllForUser), ctx, userID)
+}
+
 // RevokeFamily mocks base method.
 func (m *MockSessionRepository) RevokeFamily(ctx context.Context, familyID uuid.UUID) error {
 	m.ctrl.T.Helper()
