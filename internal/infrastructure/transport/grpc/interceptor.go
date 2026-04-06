@@ -21,8 +21,10 @@ func NewAuthInterceptor(jwtManager port.JWTManager) *AuthInterceptor {
 	return &AuthInterceptor{
 		jwtManager: jwtManager,
 		accessibleRoles: map[string]bool{
-			"/auth.v1.AuthService/Login":    true,
-			"/auth.v1.AuthService/Register": true,
+			"/auth.v1.AuthService/Login":                true,
+			"/auth.v1.AuthService/Register":             true,
+			"/auth.v1.AuthService/RequestPasswordReset": true,
+			"/auth.v1.AuthService/ResetPassword":        true,
 		},
 	}
 }

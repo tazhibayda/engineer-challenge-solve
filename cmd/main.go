@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/tazhibayda/OrbittoAuth/internal/infrastructure/db/postgres"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"net/http"
 	"os"
@@ -52,7 +54,7 @@ func main() {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "192.168.32.123:6379", // пока что для локальной разработки - wsl redis
+		Addr:     redisAddr, // пока что для локальной разработки - wsl redis
 		Password: "1234",
 	})
 	defer redisClient.Close()
@@ -99,15 +101,30 @@ func main() {
 	go func() {
 		ctx := context.Background()
 		mux := runtime.NewServeMux()
-		opts := []grpc.DialOption{grpc.WithInsecure()} // Для локальной разработки
+		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 		err := authv1.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, "localhost:50051", opts)
 		if err != nil {
 			sugar.Fatalf("Failed to register gateway: %v", err)
 		}
 
-		sugar.Infof("REST Gateway is running on port 8080")
-		if err := http.ListenAndServe(":8080", mux); err != nil {
+		httpMux := http.NewServeMux()
+
+		httpMux.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "pkg/api/swagger.swagger.json")
+		})
+
+		httpMux.Handle("/swagger/", httpSwagger.Handler(
+			httpSwagger.URL("/swagger.json"),
+		))
+
+		httpMux.Handle("/", mux)
+
+		restPort := ":8080"
+		sugar.Infof("REST Gateway API is running on port %s", restPort)
+		sugar.Infof("Swagger UI is available at http://localhost%s/swagger/index.html", restPort)
+
+		if err := http.ListenAndServe(restPort, httpMux); err != nil {
 			sugar.Fatalf("Failed to serve REST gateway: %v", err)
 		}
 	}()

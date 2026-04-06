@@ -11,7 +11,24 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Auth Service API";
     version: "1.0";
-    description: "API for User Registration and Authentication";
+    description: "API for User Registration, Authentication and Password Management";
+  };
+  security_definitions: {
+    security: {
+      key: "BearerAuth";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+        description: "Введите токен в формате: Bearer <ваш_токен>";
+      }
+    }
+  };
+  security: {
+    security_requirement: {
+      key: "BearerAuth";
+      value: {};
+    }
   };
 };
 
@@ -52,6 +69,7 @@ message RequestPasswordResetRequest {
 }
 message RequestPasswordResetResponse {
   string message = 1;
+  string reset_token = 2;
 }
 
 message ResetPasswordRequest {
