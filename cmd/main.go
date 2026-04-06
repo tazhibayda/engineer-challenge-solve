@@ -115,8 +115,6 @@ func main() {
 		})
 
 		httpMux.Handle("/swagger/", httpSwagger.Handler(
-			// КРИТИЧНО: Используем относительный путь!
-			// Где бы ты ни поднял сервис, UI будет слать запросы на текущий домен/порт.
 			httpSwagger.URL("/swagger.json"),
 		))
 

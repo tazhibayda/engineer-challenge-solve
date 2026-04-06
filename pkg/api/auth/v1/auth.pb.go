@@ -70,6 +70,7 @@ func (x *RequestPasswordResetRequest) GetEmail() string {
 type RequestPasswordResetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	ResetToken    string                 `protobuf:"bytes,2,opt,name=reset_token,json=resetToken,proto3" json:"reset_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -107,6 +108,13 @@ func (*RequestPasswordResetResponse) Descriptor() ([]byte, []int) {
 func (x *RequestPasswordResetResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *RequestPasswordResetResponse) GetResetToken() string {
+	if x != nil {
+		return x.ResetToken
 	}
 	return ""
 }
@@ -437,9 +445,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"3\n" +
 	"\x1bRequestPasswordResetRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\"8\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"Y\n" +
 	"\x1cRequestPasswordResetResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"O\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1f\n" +
+	"\vreset_token\x18\x02 \x01(\tR\n" +
+	"resetToken\"O\n" +
 	"\x14ResetPasswordRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12!\n" +
 	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\"1\n" +
@@ -465,8 +475,14 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/auth/register\x12Q\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12\x8f\x01\n" +
 	"\x14RequestPasswordReset\x12$.auth.v1.RequestPasswordResetRequest\x1a%.auth.v1.RequestPasswordResetResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/auth/password-reset/request\x12z\n" +
-	"\rResetPassword\x12\x1d.auth.v1.ResetPasswordRequest\x1a\x1e.auth.v1.ResetPasswordResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/auth/password-reset/confirmBn\x92AG\x12E\n" +
-	"\x10Auth Service API\x12,API for User Registration and Authentication2\x031.0Z\"OrbittoAuth/pkg/api/auth/v1;authv1b\x06proto3"
+	"\rResetPassword\x12\x1d.auth.v1.ResetPasswordRequest\x1a\x1e.auth.v1.ResetPasswordResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/auth/password-reset/confirmB\x84\x02\x92A\xdc\x01\x12Z\n" +
+	"\x10Auth Service API\x12AAPI for User Registration, Authentication and Password Management2\x031.0Zl\n" +
+	"j\n" +
+	"\n" +
+	"BearerAuth\x12\\\b\x02\x12GВведите токен в формате: Bearer <ваш_токен>\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00Z\"OrbittoAuth/pkg/api/auth/v1;authv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once

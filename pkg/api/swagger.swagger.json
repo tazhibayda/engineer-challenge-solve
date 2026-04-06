@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Auth Service API",
-    "description": "API for User Registration and Authentication",
+    "description": "API for User Registration, Authentication and Password Management",
     "version": "1.0"
   },
   "tags": [
@@ -238,6 +238,9 @@
       "properties": {
         "message": {
           "type": "string"
+        },
+        "resetToken": {
+          "type": "string"
         }
       }
     },
@@ -260,5 +263,18 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Введите токен в формате: Bearer \u003cваш_токен\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
 }

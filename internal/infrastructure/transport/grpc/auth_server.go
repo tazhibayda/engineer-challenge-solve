@@ -92,13 +92,14 @@ func (s *AuthServer) RequestPasswordReset(ctx context.Context, req *authv1.Reque
 		Email: req.GetEmail(),
 	}
 
-	err := s.requestResetHandler.Handle(ctx, cmd)
+	token, err := s.requestResetHandler.Handle(ctx, cmd)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to process request")
 	}
 
 	return &authv1.RequestPasswordResetResponse{
-		Message: "If your email is in our system, you will receive a reset link.",
+		Message:    "If your email is in our system, you will receive a reset link.",
+		ResetToken: token, // Мы возвращаем токен в ответе для тестирования, потом уберем его и будем отправлять только по email
 	}, nil
 }
 

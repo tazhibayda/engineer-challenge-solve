@@ -2,3 +2,5 @@
 architecture.md
 internal/infrastructure/repository/inmemory
 vendor.protogen
+bin
+.env

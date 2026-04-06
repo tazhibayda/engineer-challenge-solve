@@ -33,15 +33,15 @@ func NewRequestPasswordResetHandler(
 	}
 }
 
-func (h *RequestPasswordResetHandler) Handle(ctx context.Context, cmd RequestPasswordResetCommand) error {
+func (h *RequestPasswordResetHandler) Handle(ctx context.Context, cmd RequestPasswordResetCommand) (string, error) {
 	emailVO, err := user.NewEmail(cmd.Email)
 	if err != nil {
-		return nil
+		return "", nil
 	}
 
 	u, err := h.userRepo.GetByEmail(ctx, emailVO)
 	if err != nil {
-		return nil
+		return "", nil
 	}
 
 	token := uuid.New().String()
@@ -49,10 +49,10 @@ func (h *RequestPasswordResetHandler) Handle(ctx context.Context, cmd RequestPas
 	err = h.resetRepo.SaveToken(ctx, token, u.ID, 15*time.Minute)
 	if err != nil {
 		h.logger.Errorf("Failed to save reset token in Redis: %v", err)
-		return err
+		return "", err
 	}
 
 	h.logger.Infof("🔑 RESET PASSWORD LINK: http://localhost:8080/v1/auth/password-reset/confirm?token=%s", token)
 	// Временно выводим ссылку в лог (заглушка для EmailSender)
-	return nil
+	return token, nil
 }

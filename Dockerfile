@@ -17,6 +17,8 @@ WORKDIR /root/
 
 COPY --from=builder /app/OrbittoAuth .
 
+COPY --from=builder /app/pkg/api/swagger.swagger.json ./pkg/api/swagger.swagger.json
+
 EXPOSE 50051 8080
 
 CMD ["./OrbittoAuth"]
